@@ -8,3 +8,4 @@ license = "MIT"
 keywords = ["io", "read", "write", "seek", "subfile"]
 categories = ["filesystem", "data-structures"]
 repository = "https://github.com/clbarnes/subio"
+rust-version = "1.85"
