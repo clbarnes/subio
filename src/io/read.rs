@@ -1,11 +1,15 @@
 use super::{map_seek_oob, seek_oob};
 use std::{
-    io::{self, Read, Seek, SeekFrom},
+    io::{self, BufRead, Read, Seek, SeekFrom},
     ops::Deref,
 };
 
-/// Implements [Read], [BufRead], and [Seek] for a portion of the inner type,
+/// Implements [Read] and [Seek] for a portion of the inner type,
 /// where that inner type implements those traits.
+///
+/// Note that while [BufRead] is also supported,
+/// users should prefer to wrap a SubReader in a [std::io::BufReader] rather than the other way round,
+/// to avoid inconsistent behaviour when the inner buffer reads beyond the end of the subreader.
 #[derive(Debug, Clone)]
 pub struct SubReader<R> {
     inner: R,
@@ -75,23 +79,23 @@ impl<R: Read + Seek> SubReader<R> {
     }
 }
 
-// impl<R: std::io::BufRead> std::io::BufRead for SubReader<R> {
-//     fn fill_buf(&mut self) -> io::Result<&[u8]> {
-//         if self.pos >= self.end {
-//             return Ok(&[]);
-//         }
-//         let buf = self.inner.fill_buf()?;
-//         let max_len = (self.end - self.pos) as usize;
-//         Ok(&buf[..std::cmp::min(buf.len(), max_len)])
-//     }
+impl<R: BufRead> BufRead for SubReader<R> {
+    fn fill_buf(&mut self) -> io::Result<&[u8]> {
+        if self.pos >= self.end {
+            return Ok(&[]);
+        }
+        let buf = self.inner.fill_buf()?;
+        let max_len = (self.end - self.pos) as usize;
+        Ok(&buf[..std::cmp::min(buf.len(), max_len)])
+    }
 
-//     fn consume(&mut self, amt: usize) {
-//         let remaining = self.end.saturating_sub(self.pos);
-//         let to_read = amt.min(remaining as usize);
-//         self.inner.consume(to_read);
-//         self.pos += to_read as u64;
-//     }
-// }
+    fn consume(&mut self, amt: usize) {
+        let remaining = self.end.saturating_sub(self.pos);
+        let to_read = amt.min(remaining as usize);
+        self.inner.consume(to_read);
+        self.pos += to_read as u64;
+    }
+}
 
 impl<R: Seek> Seek for SubReader<R> {
     fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
