@@ -1,6 +1,6 @@
 [package]
 name = "subio"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 authors = ["Chris Barnes <chrislloydbarnes@gmail.com>"]
 description = "Read, write, and seek within a portion of a file as if it were itself a standalone file."
