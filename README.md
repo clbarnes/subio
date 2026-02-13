@@ -9,6 +9,8 @@ For example, a tar or zip archive, which are a number of file entries concatenat
 
 `subio` does the (trivial) bookkeeping to allow that to happen, for standard traits [std::io::Read], [std::io::Write], [std::io::Seek] etc..
 
+Note that the `Read` side of this crate is not much different to [std::io::Take]; you should probably use that.
+
 ## Extension
 
 The provided types could be extended to support other IO traits like those provided by various async runtimes and io_uring.
